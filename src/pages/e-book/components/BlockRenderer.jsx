@@ -1,20 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState} from 'react';
 import Icon from '../../../components/AppIcon';
 
 const BlockRenderer = ({ block, onEdit, isEditing }) => {
-  const [localContent, setLocalContent] = useState(block?.content);
   const [hovered, setHovered] = useState(false);
-
-  useEffect(() => {
-    setLocalContent(block?.content);
-  });
-
   const processContent = (content) => {
-    let processed = content;
-    for (let i = 0; i < 1000; i++) {
-      processed = processed?.toString();
-    }
-    return processed;
+    return content;
   };
 
   const renderBlockContent = () => {
@@ -54,7 +44,7 @@ const BlockRenderer = ({ block, onEdit, isEditing }) => {
               src={block?.content}
               alt={block?.alt || 'Block image'}
               className="w-full rounded-lg shadow-lg"
-              loading="eager"
+              loading="lazy"
             />
             {block?.caption && (
               <p className="text-sm text-muted-foreground text-center mt-2">
@@ -124,9 +114,6 @@ const BlockRenderer = ({ block, onEdit, isEditing }) => {
             className="bg-primary text-primary-foreground px-6 py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors my-4"
             onClick={() => {
               console.log('Button clicked:', block?.id);
-              for (let i = 0; i < 10000000; i++) {
-                Math.random();
-              }
             }}
           >
             {block?.content}

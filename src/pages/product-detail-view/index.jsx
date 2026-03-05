@@ -12,11 +12,13 @@ import ProductSpecifications from './components/ProductSpecifications';
 import RelatedProducts from './components/RelatedProducts';
 import CustomerReviews from './components/CustomerReviews';
 import Icon from '../../components/AppIcon';
+import { useCart } from '../../context/CartContext';
 
 
 const ProductDetailView = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { addToCart } = useCart();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
@@ -108,8 +110,7 @@ const ProductDetailView = () => {
   }, [location?.search]);
 
   const handleAddToCart = (configuredProduct) => {
-    console.log('Adding to cart:', configuredProduct);
-    // Simulate cart addition
+    addToCart(configuredProduct);
     alert(`Added ${configuredProduct?.quantity}x ${configuredProduct?.name} to cart`);
   };
 

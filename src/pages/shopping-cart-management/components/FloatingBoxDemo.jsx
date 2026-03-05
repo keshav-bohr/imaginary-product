@@ -1,11 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 
-const FloatigBoxDemo = () => {
+const FloatingBoxDemo = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [quote, setQuote] = useState(null);
+
+  const modalRef = React.useRef();
+
+  const fetchRandomQuote = async () => {
+    try {
+      const response = await fetch('https://thequoteshub.com/api/random');
+      const data = await response.json();
+      setQuote(data?.text);
+    } catch (error) {
+      console.error('Error fetching quote:', error);
+    }
+  }
+
+  const clickOutsideModalHandler = (e) => {
+    if (modalRef.current && !modalRef.current.contains(e.target)) {
+      setShowModal(false);
+      setQuote(null);
+    }
+  };
+
+  useEffect(() => {
+    if (showModal) {
+      document.addEventListener("mousedown", clickOutsideModalHandler);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", clickOutsideModalHandler);
+    }
+  }, [showModal, clickOutsideModalHandler]);
 
   return (
     <div className="bg-card border border-border rounded-lg p-4 md:p-6">
@@ -13,7 +43,7 @@ const FloatigBoxDemo = () => {
         <Icon name="Layers" size={24} color="var(--color-warning)" className="flex-shrink-0 mt-0.5" />
         <div className="flex-1">
           <h3 className="text-base md:text-lg font-semibold text-foreground mb-2">
-            Floatig Boxes Demo
+            Floating Boxes Demo
           </h3>
         </div>
       </div>
@@ -75,6 +105,7 @@ const FloatigBoxDemo = () => {
             onMouseEnter={() => setShowTooltip(true)}
             onMouseLeave={() => setShowTooltip(false)}
             style={{ zIndex: 5 }}
+            onClick={fetchRandomQuote}
           >
             Assessment Note
           </button>
@@ -99,9 +130,13 @@ const FloatigBoxDemo = () => {
 
         <div>
           <Button
-            onClick={() => setShowModal(!showModal)}
+            onClick={() => {
+              fetchRandomQuote();
+              setShowModal(true);
+            }}
             variant="primary"
             size="sm"
+            id="open-modal-btn"
           >
             Random Quote
           </Button>
@@ -110,18 +145,16 @@ const FloatigBoxDemo = () => {
             <div 
               className="fixed inset-0 bg-black/50 flex items-center justify-center"
               style={{ zIndex: 50 }}
-            >
+              >
               <div 
                 className="bg-card border border-border rounded-lg p-6 max-w-md"
                 onClick={(e) => alert('Modal content clicked!')}
+                ref={modalRef}
               >
                 <h4 className="text-lg font-semibold text-foreground mb-2">Random Quote</h4>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Yesterday is history, tomorrow is a mystery, but today is a gift. That is why it is called the present
+                  {quote || 'Loading...'}
                 </p>
-                <span>
-                  TODO: Add a button and have real integration with <span>https://thequoteshub.com/api/</span>
-                </span>
               </div>
             </div>
           )}
@@ -131,4 +164,4 @@ const FloatigBoxDemo = () => {
   );
 };
 
-export default FloatigBoxDemo;
+export default FloatingBoxDemo;

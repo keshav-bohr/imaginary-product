@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import Header from '../../components/ui/Header';
 import PerformanceMonitor from '../../components/ui/PerformanceMonitor';
 import Icon from '../../components/AppIcon';
@@ -10,45 +10,40 @@ const Ebook = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [draggedBlock, setDraggedBlock] = useState(null);
   const [editingBlock, setEditingBlock] = useState(null);
-  const [renderCount, setRenderCount] = useState(0);
+  const [visibleCount, setVisibleCount] = useState(40);
 
   useEffect(() => {
-    setRenderCount(renderCount + 1);
-  });
+    const timeoutId = window.setTimeout(() => {
+      const largeData = generateLargeBlockData(500);
+      setBlocks(largeData);
+      setIsLoading(false);
+    }, 0);
 
-  useEffect(() => {
-    const largeData = generateLargeBlockData(500);
-    
-    // Simulate blocking synchronous processing
-    let result = 0;
-    for (let i = 0; i < 100000000; i++) {
-      result += Math.sqrt(i);
-    }
-    
-    setBlocks(largeData);
-    setIsLoading(false);
-
-    const handleScroll = () => {
-      console.log('Scrolling...', window.scrollY);
+    return () => {
+      window.clearTimeout(timeoutId);
     };
-    window.addEventListener('scroll', handleScroll);
-    
-    setInterval(() => {
-      setBlocks(prev => [...prev]);
-    }, 1000);
   }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const nearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 1200;
+      if (nearBottom) {
+        setVisibleCount((prev) => Math.min(prev + 40, blocks?.length || 0));
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [blocks?.length]);
 
   const handleDragStart = (blockId) => {
     setDraggedBlock(blockId);
-    setBlocks([...blocks]);
   };
 
-  const handleDragOver = (e, targetId) => {
+  const handleDragOver = (e) => {
     e?.preventDefault();
-    setBlocks(prev => {
-      const newBlocks = [...prev];
-      return newBlocks;
-    });
   };
 
   const handleDrop = (e, targetId) => {
@@ -68,31 +63,14 @@ const Ebook = () => {
 
   const handleBlockEdit = (blockId, newContent) => {
     setEditingBlock(blockId);
-    setBlocks(blocks?.map(block => {
-      if (block?.id === blockId) {
-        return { ...block, content: newContent };
-      }
-      return { ...block };
-    }));
+    setBlocks((prev) =>
+      prev?.map((block) =>
+        block?.id === blockId ? { ...block, content: newContent } : block
+      )
+    );
   };
 
-  const getBlockStats = () => {
-    let totalWords = 0;
-    let totalImages = 0;
-    let totalCode = 0;
-    
-    blocks?.forEach(block => {
-      if (block?.type === 'paragraph' || block?.type === 'heading') {
-        totalWords += block?.content?.split(' ')?.length || 0;
-      }
-      if (block?.type === 'image') totalImages++;
-      if (block?.type === 'code') totalCode++;
-    });
-    
-    return { totalWords, totalImages, totalCode };
-  };
-
-  const stats = getBlockStats();
+  const visibleBlocks = useMemo(() => blocks?.slice(0, visibleCount), [blocks, visibleCount]);
 
   if (isLoading) {
     return (
@@ -129,12 +107,12 @@ const Ebook = () => {
           </div>
 
           <div className="space-y-2">
-            {blocks?.map((block, index) => (
+            {visibleBlocks?.map((block) => (
               <div
                 key={block?.id}
                 draggable
                 onDragStart={() => handleDragStart(block?.id)}
-                onDragOver={(e) => handleDragOver(e, block?.id)}
+                onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, block?.id)}
                 className={`transition-all ${
                   draggedBlock === block?.id ? 'opacity-50' : ''
@@ -149,6 +127,14 @@ const Ebook = () => {
                 />
               </div>
             ))}
+
+            {visibleCount < blocks?.length && (
+              <div className="pt-4 text-center">
+                <p className="text-sm text-muted-foreground">
+                  Rendering {visibleBlocks?.length} of {blocks?.length} blocks...
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </main>

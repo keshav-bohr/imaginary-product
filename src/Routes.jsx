@@ -9,11 +9,13 @@ import ShoppingCartManagement from './pages/shopping-cart-management';
 import Ebook from './pages/e-book';
 import Library from './pages/Library';
 import { AssessmentProgressProvider } from './components/ui/AssessmentProgress';
+import { CartProvider } from './context/CartContext';
 
 const Routes = () => {
   return (
     <BrowserRouter>
       <ErrorBoundary>
+      <CartProvider>
       <AssessmentProgressProvider>
       <ScrollToTop />
       <RouterRoutes>
@@ -26,6 +28,7 @@ const Routes = () => {
         <Route path="/Library" element={<Library />} />
       </RouterRoutes>
       </AssessmentProgressProvider>
+      </CartProvider>
       </ErrorBoundary>
     </BrowserRouter>
   );

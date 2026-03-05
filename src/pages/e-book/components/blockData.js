@@ -1,4 +1,3 @@
-import React, { useState, useEffect } from "react";
 export const generateLargeBlockData = (count = 500) => {
   const blocks = [];
 
